@@ -2,45 +2,20 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import { GLView } from "expo-gl";
 import { Renderer } from "expo-three";
-// import { gsap } from "gsap";
 import {
   PointLight,
   GridHelper,
   PerspectiveCamera,
   Scene,
-  AnimationMixer, // アニメーションのため追加
   Clock, // アニメーションのため追加
 } from "three";
-import Positon from "./Position"; // バーチャルスティックのjs
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Asset } from "expo-asset"; // ファイル読み込みのため追加
-import { gsap } from "gsap";
 
 export default function App() {
   const [cameras, setCameras] = useState(null);
   const [models, setModels] = useState(null); // 3Dモデルをセットする変数
-  const [walk, setWalk] = useState(true); // アニメーションをセットする変数
-
-  // TweenMax.to(何が, 何秒で, { z軸に distance 分移動 })
-  const move = (props) => {
-    walk.paused = false;// .paused = アニメーションを一時停止解除
-    walk.play(); // アニメーションである変数walkを再生
-    gsap.to(models.position, 0.1, {
-      z: models.position.z + props.y,
-      x: models.position.x + props.x,
-    });
-    gsap.to(cameras.position, 0.1, {
-      z: cameras.position.z + props.y,
-      x: cameras.position.x + props.x,
-    });
-    // y座標を反転させ radian に +1.5 加算し前後左右にいい感じで振り向かせる
-    models.rotation.y = Math.atan2(-props.y, props.x) + 1.5;
-  };
-  // Position.jsから受け取ったonEnd（画面から指を離すことで発火する）で実行
-  const end = () => {
-    walk.paused = true; // .paused = アニメーションを一時停止解除
-  };
-
+  
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -61,6 +36,7 @@ export default function App() {
             // アセットフォルダのglbファイルを読み込み
             const asset = Asset.fromModule(require("./assets/adamHead/adamHead.gltf")); // Mixamoで作成したtest.glb
             await asset.downloadAsync();
+            console.log(asset);
 
             let mixer;
             let clock = new Clock();
@@ -68,16 +44,10 @@ export default function App() {
             // glbファイルをロードして3D空間に表示させる
               asset.uri || "",
               (gltf) => {
+                console.log(asset.uri);
                 const model = gltf.scene;
                 model.position.set(0, 0, 0); // 配置される座標 (x,y,z)
                 model.rotation.y = Math.PI;
-                const animations = gltf.animations;
-                //Animation Mixerインスタンスを生成
-                mixer = new AnimationMixer(model);
-                // glbファイルのアニメーション
-                let animation = animations[0];
-                // アニメーションを変数walkにセット
-                setWalk(mixer.clipAction(animation));
                 // test.glbを3D空間に追加
                 scene.add(model);
                 setModels(model);
@@ -120,17 +90,6 @@ export default function App() {
         />
       </View>
       <View style={{ flexDirection: "row", alignSelf: "center" }}>
-        <Positon
-          // Position.jsからonMoveを受け取ってmove関数を実行
-          onMove={(data) => {
-            move({
-              x: (data.x - 60) / 1000,
-              y: (data.y - 60) / 1000,
-            });
-          }}
-          // Position.jsからonEndを受け取ってend関数を実行
-          onEnd={end}
-        />
       </View>
     </>
   );
