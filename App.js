@@ -33,10 +33,13 @@ export default function App() {
 
             let mixer;
             let clock = new Clock();
+
+            const [{ localUri }] = await Asset.loadAsync(require('./assets/adamHead/adamHead.gltf'));
+            console.log(localUri);
             
             const loader = new GLTFLoader();
             loader.load(
-              '/assets/adamHead/adamHead.gltf',
+              localUri,
               (gltf) => {
                 console.log(gltf);
                 scene.add(gltf.scene);
