@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { GLView } from "expo-gl";
-import { Renderer } from "expo-three";
+import ExpoTHREE, { Renderer } from "expo-three";
 import {
   PointLight,
   GridHelper,
@@ -31,34 +31,24 @@ export default function App() {
             const scene = new Scene(); // これが3D空間
             scene.add(new GridHelper(100, 100)); //グリッドを表示
 
-            // GLTFをロードする
-            const loader = new GLTFLoader();
-            // アセットフォルダのglbファイルを読み込み
-            const asset = Asset.fromModule(require("./assets/adamHead/adamHead.gltf")); // Mixamoで作成したtest.glb
-            await asset.downloadAsync();
-            console.log(asset);
-
             let mixer;
             let clock = new Clock();
+            
+            const loader = new GLTFLoader();
             loader.load(
-            // glbファイルをロードして3D空間に表示させる
-              asset.uri || "",
+              '/assets/adamHead/adamHead.gltf',
               (gltf) => {
-                console.log(asset.uri);
-                const model = gltf.scene;
-                model.position.set(0, 0, 0); // 配置される座標 (x,y,z)
-                model.rotation.y = Math.PI;
-                // test.glbを3D空間に追加
-                scene.add(model);
-                setModels(model);
+                console.log(gltf);
+                scene.add(gltf.scene);
               },
               (xhr) => {
-                console.log("ロード中");
+                console.log(`${(xhr.loaded / xhr.total * 100)}% loaded`);
               },
               (error) => {
-                console.error("読み込めませんでした");
+                console.error(error);
               }
             );
+
             // 3D空間の光！
             const pointLight = new PointLight(0xffffff, 2, 1000, 1); //一点からあらゆる方向への光源(色, 光の強さ, 距離, 光の減衰率)
             pointLight.position.set(0, 200, 200); //配置される座標 (x,y,z)
